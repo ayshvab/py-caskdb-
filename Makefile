@@ -5,10 +5,12 @@ test:
 	python -m unittest discover -vvv ./tests -p '*.py' -b
 
 lint:
-	black --check --diff .
-	flake8 .
+	ruff check
 	mypy --strict .
 	pytype .
+
+lint-fix:
+	ruff check --fix
 
 coverage:
 	coverage run -m unittest discover -vvv ./tests -p '*.py' -b

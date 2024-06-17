@@ -19,11 +19,7 @@ Typical usage example:
     # it also supports dictionary style API too:
     disk["hamlet"] = "shakespeare"
 """
-import os.path
-import time
-import typing
 
-from format import encode_kv, decode_kv, decode_header
 
 
 # DiskStorage is a Log-Structured Hash Table as described in the BitCask paper. We

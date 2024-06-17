@@ -1,3 +1,5 @@
+from struct import pack, unpack
+
 """
 format module provides encode/decode functions for serialisation and deserialisation
 operations
@@ -38,16 +40,24 @@ For the workshop, the functions will have the following signature:
 
 
 def encode_header(timestamp: int, key_size: int, value_size: int) -> bytes:
-    raise NotImplementedError
+    return pack("<III", timestamp, key_size, value_size)
 
 
 def encode_kv(timestamp: int, key: str, value: str) -> tuple[int, bytes]:
-    raise NotImplementedError
-
+    key_bytes = key.encode('utf-8')
+    value_bytes = value.encode('utf-8')
+    key_size = len(key_bytes)
+    value_size = len(value_bytes)
+    header = encode_header(timestamp, key_size, value_size)
+    datum = header + key_bytes + value_bytes
+    # Header size is 12 bytes (3 * 4 bytes for each integer)
+    return len(datum) - 12, datum
 
 def decode_kv(data: bytes) -> tuple[int, str, str]:
-    raise NotImplementedError
-
+    timestamp, key_size, value_size = unpack("<III", data[:12])
+    key, value = unpack(f"<{key_size}s{value_size}s", data[12:])
+    return timestamp, key.decode('utf-8'), value.decode('utf-8')
 
 def decode_header(data: bytes) -> tuple[int, int, int]:
-    raise NotImplementedError
+    return unpack("<III", data)
+
