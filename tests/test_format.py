@@ -15,7 +15,8 @@ def get_random_header() -> tuple[int, int, int]:
     # we use 4 bytes to store the int, so max value cannot be greater than
     # the following
     max_size: int = (2**32) - 1
-    random_int: typing.Callable[[], int] = lambda: random.randint(0, max_size)
+    def random_int() -> int:
+        return random.randint(0, max_size)
     return random_int(), random_int(), random_int()
 
 

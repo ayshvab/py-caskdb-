@@ -1,3 +1,11 @@
+# pyright: strict
+
+from pathlib import Path
+from format import decode_header, decode_kv, encode_kv
+import os
+from typing import Tuple
+from typing import BinaryIO
+
 """
 disk_store module implements DiskStorage class which implements the KV store on the
 disk
@@ -19,7 +27,6 @@ Typical usage example:
     # it also supports dictionary style API too:
     disk["hamlet"] = "shakespeare"
 """
-
 
 
 # DiskStorage is a Log-Structured Hash Table as described in the BitCask paper. We
@@ -59,17 +66,62 @@ class DiskStorage:
             pass the full file location too.
     """
 
+    key_dir: dict[str, Tuple[str, int, int, int]]
+
     def __init__(self, file_name: str = "data.db"):
-        raise NotImplementedError
+        self.timestamp = 0
+        self.file_name = file_name
+        self.key_dir =  {}
+        if Path(file_name).is_file():
+            with open(file_name, 'rb') as file:
+                self.key_dir_from(file)
+
+    def key_dir_from(self, file: BinaryIO):
+        while True:
+            pos = file.tell()
+            header = file.read(12)
+            if not header:
+                break
+            [timestamp, key_size, value_size] = decode_header(header)
+            assert(key_size > 0)
+            assert(value_size > 0)
+            key_bytes = file.read(key_size)
+            assert(len(key_bytes) > 0)
+            key = key_bytes.decode('utf-8')
+            file.seek(pos + 12 + key_size + value_size)
+            self.key_dir[key] = (self.file_name, 12 + key_size + value_size, pos, timestamp)
+
+    def next_timestamp(self):
+        self.timestamp += 1
+        return self.timestamp
 
     def set(self, key: str, value: str) -> None:
-        raise NotImplementedError
+        timestamp = self.next_timestamp()
+        # datum_sz is the size without header size (12 bytes), but datum includes header. WTF?
+        datum_sz, datum = encode_kv(timestamp, key, value)
+        with open(self.file_name, 'ab') as file:
+            pos = file.tell()
+            self.key_dir[key] = (self.file_name, datum_sz + 12, pos, timestamp)
+            file.write(datum)
 
     def get(self, key: str) -> str:
-        raise NotImplementedError
+        found_value = ""
+        if key in self.key_dir:
+            [file_name, datum_sz, pos, timestamp] = self.key_dir[key]
+            assert(file_name == self.file_name)
+            with open(file_name, 'rb') as file:
+                file.seek(pos)
+                datum = file.read(datum_sz)
+                [stored_timestamp, stored_key, stored_value] = decode_kv(datum)
+                assert(key == stored_key)
+                assert(timestamp == stored_timestamp)
+                found_value = stored_value
+        return found_value
 
     def close(self) -> None:
-        raise NotImplementedError
+        with open(self.file_name, 'rb+') as file:
+            file.flush()
+            os.fsync(file.fileno())
 
     def __setitem__(self, key: str, value: str) -> None:
         return self.set(key, value)

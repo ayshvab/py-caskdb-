@@ -1,0 +1,14 @@
+[tool.pyright]
+include = ["*.py", "tests"]
+exclude = ["**/node_modules",
+    "**/__pycache__",
+]
+ignore = [".venv", ".ruff_cache", ".github"]
+defineConstant = { DEBUG = true }
+stubPath = "stubs"
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+pythonVersion = "3.11"
+pythonPlatform = "Linux"

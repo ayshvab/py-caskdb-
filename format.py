@@ -1,3 +1,4 @@
+# pyright: strict
 from struct import pack, unpack
 
 """

@@ -6,8 +6,7 @@ test:
 
 lint:
 	ruff check
-	mypy --strict .
-	pytype .
+	pyright
 
 lint-fix:
 	ruff check --fix
