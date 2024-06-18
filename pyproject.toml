@@ -1,11 +1,9 @@
 [tool.pyright]
+venv = ".venv"
 include = ["*.py", "tests"]
 exclude = ["**/node_modules",
-    "**/__pycache__",
+    "**/__pycache__"
 ]
-ignore = [".venv", ".ruff_cache", ".github"]
-defineConstant = { DEBUG = true }
-stubPath = "stubs"
 
 reportMissingImports = true
 reportMissingTypeStubs = false
