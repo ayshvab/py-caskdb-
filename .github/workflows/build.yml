@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'master'
+      - 'start-here'
   pull_request: {}
 
 jobs:
